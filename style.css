@@ -1,0 +1,44 @@
+.menu
+{
+    displaY: flex;
+    height: 50px;
+    background: tomato;
+    font-family: sans-serif;
+}
+
+.menu > a
+{
+    flex-grow: 1;
+    flex-shrink: 0;
+    text-align: center;
+    line-height: 50px;
+    vertical-align: center;
+    font-size: 30px;
+    color: rgba(255,255,255,0.8);
+    
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.menu > a:hover
+{
+    background: orange;
+}
+
+.menu > a.active
+{
+    background: cyan;
+}
+
+.body
+{
+    display: flex;
+    justify-content: center;
+}
+
+#content
+{
+    width: 800px;
+    padding: 20px 50px;
+    background: seagreen;
+}
