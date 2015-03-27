@@ -1,5 +1,4 @@
 DirectorySlash Off
-Options FollowSymLinks Indexes
 DirectoryIndex route.php
 
 RewriteEngine On
