@@ -6,11 +6,6 @@ require("Alloy/View.php");
 use Alloy\View;
 
 $view = View::Get("views/test.html");
-$data = array();
-$attr = array();
-
-$headers = getallheaders();
-$update = isset($headers["Content-Type"]) && $headers["Content-Type"] == "application/json";
 
 $page = $_VIEW;
 switch ($page)
@@ -31,56 +26,76 @@ switch ($page)
 
 function Home()
 {
-    global $data,$attr;
+    global $view;
     resetbuttons();
-    $data["content"] = "Hemside";
-    $data["title"] = "Alloy - Hem";
     
-    $attr["homebutton"] = array("class"=>"active");
+    $view->SetData("content","Hemsida");
+    $view->SetData("title","Alloy - Hem");
+    
+    $view->SetAttribute("homebutton","class","active");
 }
 
 function Om()
 {
-    global $data,$attr;
+    global $view;
     resetbuttons();
-    $data["content"] = "Detta är om mig!";
-    $data["title"] = "Alloy - Om";
     
-    $attr["ombutton"] = array("class"=>"active");
+    $view->SetData("content","Detta är om mig!");
+    $view->SetData("title","Alloy - Om");
+    
+    $view->SetAttribute("ombutton","class","active");
 }
 
 function Kontakt()
 {
-    global $data,$attr,$_DATA;
+    global $view,$_DATA;
     resetbuttons();
     $name = "oss";
     if (isset($_DATA[0]))
         $name = $_DATA[0];
-    $data["content"] = "Ring inte $name >:C";
-    $data["title"] = "Alloy - Kontakt";
+        
+    $contact = View::Get("views/kontakt.html");
     
-    $attr["kontaktbutton"] = array("class"=>"active");
+    $phant = View::Get("views/list.html");
+    
+    $contact->SetData("name",$name);
+    $contact->SetData("text","Bara lite random text!");
+    $contact->SetData("container",$phant);
+    
+    $phant->SetAttribute("text","style","background: tomato");
+    $phant->SetAttribute("image", "src", "http://i.imgur.com/ItTEj.jpg");
+    $phant->SetData("text", "testing something else");
+    
+    $view->SetData("content",$contact);
+    $view->SetData("title","Alloy - Kontakt");
+    
+    $view->SetAttribute("kontaktbutton","class","active");
 }
 
 function Bilder()
 {
-    global $data,$attr;
+    global $view;
     resetbuttons();
-    $data["content"] = "VI HAR INGA BILDER, YO";
-    $data["title"] = "Alloy - Bilder";
     
-    $attr["bilderbutton"] = array("class"=>"active");
+    $phant = View::Get("views/list.html");
+    $phant->SetData("text","No so much hello now");
+    $phant->SetAttribute("text","style","background: red");
+    
+    $view->SetData("content",$phant);
+    $view->SetData("title","Alloy - Bilder");
+    
+    $view->SetAttribute("bilderbutton","class","active");
 }
 
 function resetbuttons()
 {
-    global $data,$attr;
-    $attr["ombutton"] = array("class" => "");
-    $attr["homebutton"] = array("class" => "");
-    $attr["kontaktbutton"] = array("class" => "");
-    $attr["bilderbutton"] = array("class" => "");
+    global $view;
+    $view->SetAttribute("ombutton","class","");
+    $view->SetAttribute("homebutton","class","");
+    $view->SetAttribute("kontaktbutton","class","");
+    $view->SetAttribute("bilderbutton","class","");
 }
 
-$view->Render($data,$attr,$update);
+$view->Render();
 
 ?>

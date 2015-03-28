@@ -1,6 +1,7 @@
 var Alloy = (function() {
     
     var module = {};
+    var alloyViews = {};
     
     window.addEventListener("popstate",function(e) {
         _request(e.state.location,e.state.args);
@@ -33,7 +34,7 @@ var Alloy = (function() {
             {
                 var obj = JSON.parse(x.responseText);
                 if (callback(obj))
-                    update(obj);
+                    prepareUpdate(obj);
             }
             catch (ev)
             {
@@ -44,22 +45,76 @@ var Alloy = (function() {
         x.send();
     };
     
-    function update(data)
+    function downloadView(view,callback)
     {
-        console.log(data);
+        var x = new XMLHttpRequest()
+        x.open("GET","/_view/"+view);
+        x.onload = function() {
+            callback(x.responseText);
+        };
+        x.send();
+    }
+    
+    function prepareUpdate(obj)
+    {
+        var views = obj.views;
+        var count = views.length;
         
-        for (var obj in data.data)
+        var checkDownload = function()
         {
-            var e = document.querySelector("#"+obj);
-            
-            var contentupdate = document.createEvent("HTMLEvents");
-            contentupdate.initEvent("contentupdate",true,true);
-            contentupdate.data = data.data[obj];
-            
-            if (e.dispatchEvent(contentupdate))
-                e.innerHTML = data.data[obj];
-        }
+            if (count <= 0)
+                update(obj.data,views);
+        };
         
+        views.forEach(function(v)
+        {
+            if (!alloyViews[v])
+                downloadView(v, function(viewdata) {
+                    alloyViews[v] = viewdata;
+                    count--;
+                    checkDownload();
+                });
+            else
+                count--;
+        });
+        checkDownload();
+    }
+    
+    function update(data,views,p)
+    {
+        p = p || document;
+        data.forEach(function (obj)
+        {
+            var e = p.querySelector("*[name="+obj.t+"]");
+            if (obj.d)
+            {
+                var d = obj.d;
+                var contentupdate = document.createEvent("HTMLEvents");
+                contentupdate.initEvent("contentupdate",true,true);
+                contentupdate.data = d;
+                
+                if (e.dispatchEvent(contentupdate))
+                {
+                    if (d.v)
+                        e.innerHTML = d.v;
+                    if (d.a)
+                        for (var attr in d.a)
+                        {
+                            e.setAttribute(attr, d.a[attr]);
+                        }
+                    
+                }
+            }
+            else if (obj.v)
+            {
+                var v = views[obj.v.v];
+                var view = createView(v);
+                e.innerHTML = "";
+                update(obj.v.data,views,view)
+                e.appendChild(view);
+            }
+        }.bind(this));
+        /*
         for (var obj in data.attr)
         {
             var e = document.querySelector("#"+obj);
@@ -70,11 +125,19 @@ var Alloy = (function() {
             attributeupdate.attributes = a;
             
             if (e.dispatchEvent(attributeupdate))
-            for (var attr in a)
-            {
-                e.setAttribute(attr, a[attr]);
-            }
+            
         }
+        */
+    }
+    
+    function createView(view)
+    {
+        var frag = document.createDocumentFragment();
+        var tmp = document.createElement("div");
+        tmp.innerHTML = alloyViews[view];
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        
+        return frag;
     }
     
     function htmlify(obj)

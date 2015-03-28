@@ -114,7 +114,7 @@ class Compiler
                     $obj = new \stdClass;
                     $obj->tagstart = $tagstart;
                     $obj->start = $start+1;
-                    $obj->id=$tag->GetAttribute("id");
+                    $obj->id=$tag->GetAttribute("name");
                     $obj->end = $end;
                     $obj->tagend = $tagend;
                     $obj->children = array();
@@ -132,7 +132,10 @@ class Compiler
                 $offset = $pos + 6;
             }
         }
-        $p = $parent->parent;
+        if (isset($parent->parent))
+            $p = $parent->parent;
+        else
+            $p = null;
         while($p)
         {
             if (isset($parent->parent))

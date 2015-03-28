@@ -19,6 +19,10 @@ switch ($view)
         $_VIEW = "home";
         include("test.php");
         break;
+    case "_view":
+        $path = str_replace("/_view/","",$_SERVER["REQUEST_URI"]);
+        include($path);
+        break;
     case "hem":
         $_VIEW = "home";
         include("test.php");
