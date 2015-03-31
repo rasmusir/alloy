@@ -12,7 +12,7 @@ foreach ($path as $d)
 }
 
 $view = $path[1];
-
+$_VIEW = "home";
 switch ($view)
 {
     default:

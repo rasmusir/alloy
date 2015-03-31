@@ -43,7 +43,7 @@ class View
     function __construct($file,$vid)
     {
         
-        $this->overhead = Compiler::Compile($file);
+        $this->overhead = Compiler::Get($file);
         
         $this->Elements = array();
         $this->loopElement($this->overhead);
@@ -65,9 +65,9 @@ class View
             $this->data[$id] = new  \StdClass;
             
         if (!isset($this->data[$id]->a))
-            $this->data[$id]->a[$attr] = $value;
-        else
             $this->data[$id]->a = array($attr => $value);
+        else
+            $this->data[$id]->a[$attr] = $value;
     }
     
     private function loopElement($e)

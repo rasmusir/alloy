@@ -4,6 +4,29 @@ require("Tag.php");
 
 class Compiler
 {
+    static function Get($filename)
+    {
+        $ohm = $filename.".json";
+        if (file_exists($ohm))
+        {
+            $file = fopen($ohm,"r");
+            $size = filesize($ohm);
+            $string = fread($file,$size);
+            fclose($file);
+            $overhead = json_decode($string);
+            if ($overhead->timestamp == filemtime($filename))
+                return $overhead;
+        }
+        
+        $file = fopen($ohm,"w");
+        $overhead = self::Compile($filename);
+        $overhead->timestamp = filemtime($filename);
+        $string = fwrite($file,json_encode($overhead));
+        fclose($file);
+        
+        return $overhead;
+    }
+    
     static function Compile($filename)
     {
         $file = fopen($filename,"r");

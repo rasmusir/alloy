@@ -13,6 +13,7 @@ var Alloy = (function() {
             request(e.target.href,null);
             e.preventDefault();
         }
+        
     }.bind(this));
     
     function request(location,args,callback)
@@ -86,7 +87,7 @@ var Alloy = (function() {
         data.forEach(function (obj)
         {
             var e = p.querySelector("*[name="+obj.t+"]");
-            if (obj.d)
+            if (obj.d && e)
             {
                 var d = obj.d;
                 var contentupdate = document.createEvent("HTMLEvents");
@@ -105,7 +106,7 @@ var Alloy = (function() {
                     
                 }
             }
-            else if (obj.v)
+            else if (obj.v && e)
             {
                 var v = views[obj.v.v];
                 var view = createView(v);
