@@ -1,0 +1,16 @@
+{
+    "default" : {
+        "target" : "test.php",
+        "alias"  : "hem"
+    },
+    "routes":[
+        {
+            "alias" : ["hem","om","bilder","kontakt","secret"],
+            "target" : "test.php"
+        },
+        {
+            "alias" : ["info","php"],
+            "target" : "info.php"
+        }
+    ]
+}

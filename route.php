@@ -1,6 +1,15 @@
 <?php
-$path = explode("/",$_SERVER["REQUEST_URI"]);
+$cfn = ".route";
+$file = fopen($cfn,"r");
+$size = filesize($cfn);
+$string = fread($file,$size);
+$routecache = json_decode($string);
+fclose($file);
 
+$code = "";
+
+$path = explode("/",$_SERVER["REQUEST_URI"]);
+$_VIEW = $path[1];
 
 $_DATA = array();
 $i = 0;
@@ -11,35 +20,41 @@ foreach ($path as $d)
     $_DATA[$i-3] = $d;
 }
 
-$view = $path[1];
-$_VIEW = "home";
-switch ($view)
+$fn = "routes.json";
+if ($routecache->timestamp != filemtime($fn))
 {
-    default:
-        $_VIEW = "home";
-        include("test.php");
-        break;
-    case "_view":
-        $path = str_replace("/_view/","",$_SERVER["REQUEST_URI"]);
-        include($path);
-        break;
-    case "hem":
-        $_VIEW = "home";
-        include("test.php");
-        break;
-    case "om":
-        $_VIEW = "about";
-        include("test.php");
-        break;
-    case "kontakt":
-        $_VIEW = "contact";
-        include("test.php");
-        break;
-    case "bilder":
-        $_VIEW = "pictures";
-        include("test.php");
-        break;
+    $file = fopen($fn,"r");
+    $size = filesize($fn);
+    $string = fread($file,$size);
+    $routes = json_decode($string);
+    fclose($file);
+    
+    $default = $routes->default->target;
+    $defalias = $routes->default->alias;
+    $code .= "switch (\$_VIEW) {default:";
+    $code .= "\$_VIEW='$defalias';include('$default');break;";
+    $code .= "case '_view':\$path=str_replace('/_view/','',\$_SERVER['REQUEST_URI']);include(\$path);break;";
+    foreach ($routes->routes as $route)
+    {
+        foreach ($route->alias as $alias)
+        {
+            $code .=  "case '$alias': ";
+            
+        }
+        $code .=  "include('$route->target');";
+        $code .=  "break;";
+    }
+    $code .=  "}";
+    
+    $routecache->timestamp = filemtime($fn);
+    $routecache->code = $code;
+    $file = fopen($cfn,"w");
+    fwrite($file,json_encode($routecache));
+    fclose($file);
 }
-
+else
+    $code = $routecache->code;
+//echo $code;
+eval($code);
 
 ?>

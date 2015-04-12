@@ -11,16 +11,16 @@ $view = View::Get("views/test.html");
 $page = $_VIEW;
 switch ($page)
 {
-    case "home":
+    case "hem":
         Home();
     break;
-    case "about":
+    case "om":
         Om();
     break;
-    case "contact":
+    case "kontakt":
         Kontakt();
     break;
-    case "pictures":
+    case "bilder":
         Bilder();
     break;
 }
