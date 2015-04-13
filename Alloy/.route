@@ -1,0 +1,1 @@
+{"timestamp":1428930420,"code":"switch ($_VIEW) {default:$_VIEW='hem';include('test.php');break;case '_view':$path=str_replace('\/_view\/','',$_SERVER['REQUEST_URI']);include($path);break;case 'hem': case 'om': case 'bilder': case 'kontakt': case 'secret': include('test.php');break;case 'info': case 'php': include('info.php');break;}"}

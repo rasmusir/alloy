@@ -1,4 +1,9 @@
 <?php
+
+
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 $cfn = ".route";
 $file = fopen($cfn,"r");
 $size = filesize($cfn);
@@ -55,6 +60,8 @@ if ($routecache->timestamp != filemtime($fn))
 else
     $code = $routecache->code;
 //echo $code;
+
+chdir("..");
 eval($code);
 
 ?>

@@ -6,5 +6,5 @@
 .c9
 
 ### Ignore cache JSON ###
-*.html.json
+views/*.html.json
 
