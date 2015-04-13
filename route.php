@@ -42,11 +42,14 @@ if ($routecache->timestamp != filemtime($fn))
     $code .= "case '_view':\$path=str_replace('/_view/','',\$_SERVER['REQUEST_URI']);include(\$path);break;";
     foreach ($routes->routes as $route)
     {
+        if (is_array($route->alias))
         foreach ($route->alias as $alias)
         {
             $code .=  "case '$alias': ";
             
         }
+        else
+            $code .=  "case '$route->alias': ";
         $code .=  "include('$route->target');";
         $code .=  "break;";
     }
