@@ -116,7 +116,7 @@ var Alloy = (function() {
             }
             else if(obj.v && e && obj.v.t)
             {
-                var t = document.querySelector("script[name="+obj.v.t+"]");
+                var t = p.querySelector("script[name="+obj.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                 var template = createTemplate(t);
                 e.innerHTML = "";
                 update(obj.v.data,views,template)
@@ -128,27 +128,13 @@ var Alloy = (function() {
                 e.innerHTML = "";
                 obj.v.data.forEach(function(data){
                     
-                    var t = document.querySelector("script[name="+data.v.t+"]");
+                    var t = p.querySelector("script[name="+data.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                     var template = createTemplate(t);
                     update(data.v.data,views,template)
                     e.appendChild(template);
                 });
             }
         }.bind(this));
-        /*
-        for (var obj in data.attr)
-        {
-            var e = document.querySelector("#"+obj);
-            var a = data.attr[obj];
-            var attributeupdate = document.createEvent("HTMLEvents");
-            attributeupdate.initEvent("attributeupdate",true,true);
-            
-            attributeupdate.attributes = a;
-            
-            if (e.dispatchEvent(attributeupdate))
-            
-        }
-        */
     }
     
     function createView(view)
