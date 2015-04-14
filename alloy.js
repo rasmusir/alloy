@@ -106,13 +106,33 @@ var Alloy = (function() {
                     
                 }
             }
-            else if (obj.v && e)
+            else if (obj.v && e && obj.v.v !==undefined)
             {
                 var v = views[obj.v.v];
                 var view = createView(v);
                 e.innerHTML = "";
                 update(obj.v.data,views,view)
                 e.appendChild(view);
+            }
+            else if(obj.v && e && obj.v.t)
+            {
+                var t = document.querySelector("script[name="+obj.v.t+"]");
+                var template = createTemplate(t);
+                e.innerHTML = "";
+                update(obj.v.data,views,template)
+                e.appendChild(template);
+            }
+            else if(obj.v && e && obj.v.data)
+            {
+                if (!obj.append)
+                e.innerHTML = "";
+                obj.v.data.forEach(function(data){
+                    
+                    var t = document.querySelector("script[name="+data.v.t+"]");
+                    var template = createTemplate(t);
+                    update(data.v.data,views,template)
+                    e.appendChild(template);
+                });
             }
         }.bind(this));
         /*
@@ -136,6 +156,16 @@ var Alloy = (function() {
         var frag = document.createDocumentFragment();
         var tmp = document.createElement("div");
         tmp.innerHTML = alloyViews[view];
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        
+        return frag;
+    }
+    
+    function createTemplate(template)
+    {
+        var frag = document.createDocumentFragment();
+        var tmp = document.createElement("div");
+        tmp.innerHTML = template.innerHTML;
         while (tmp.firstChild) frag.appendChild(tmp.firstChild);
         
         return frag;

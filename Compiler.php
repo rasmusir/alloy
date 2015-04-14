@@ -108,7 +108,7 @@ class Compiler
                 $openoffset = 0;
                 $closeoffset = 0;
                 
-                $opentag = 0;
+                $opentag = 99999999999;
                 $closetag = stripos($searchstring,$closetagtype,$closeoffset);
                 $previousclosetag = $closetag;
                 $end = $start+1;
@@ -141,13 +141,18 @@ class Compiler
                     $obj->end = $end;
                     $obj->tagend = $tagend;
                     $obj->children = array();
-                    
+                    $type = $tag->GetAttribute("type");
                     while ($parent->tagend < $obj->start)
                     {
                         $pp = $parent->parent;
                         unset($parent->parent);
                         $parent = $pp;
                     }
+                    
+                    if ($type && $type == "template/html")
+                        $obj->istemplate = true;
+                    if (isset($parent->istemplate))
+                        $obj->ignore = true;
                     array_push($parent->children,$obj);
                     $obj->parent = $parent;
                     $parent = $obj;

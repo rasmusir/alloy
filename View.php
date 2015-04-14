@@ -5,10 +5,12 @@ require("Compiler.php");
 class View
 {
     private $data = array();
+    public $istemplate = false;
     
     private static $update = null;
     private static $views = array();
     private static $first = true;
+    public $file;
     
     static function Get($file)
     {
@@ -25,7 +27,18 @@ class View
             array_push(self::$views,$file);
         }
         self::$first = false;
-        return new View($file,$id);
+        $view = new View(Compiler::Get($file),$id);
+        $view->file = $file;
+        return $view;
+    }
+    
+    function GetTemplate($template)
+    {
+        $this->Elements[$template]->parent = null;
+        $this->Elements[$template]->template = $this->file;
+        $view = new View($this->Elements[$template],$template);
+        $view->istemplate = true;
+        return $view;
     }
     
     function GetElementData($e)
@@ -40,10 +53,10 @@ class View
         return $data;
     }
     
-    function __construct($file,$vid)
+    function __construct($overhead,$vid)
     {
         
-        $this->overhead = Compiler::Get($file);
+        $this->overhead = $overhead;
         
         $this->Elements = array();
         $this->loopElement($this->overhead);
@@ -57,6 +70,24 @@ class View
         if (!isset($this->data[$id]))
             $this->data[$id] = new  \StdClass;
         $this->data[$id]->v = $value;
+    }
+    
+    function SetAppend($id,$append)
+    {
+        if (!isset($this->data[$id]))
+            $this->data[$id] = new \StdClass;
+        $this->data[$id]->append = $append;
+    }
+    
+    function AddData($id,$value)
+    {
+        if (!isset($this->data[$id]->v))
+        {
+            if (!isset($this->data[$id]))
+            $this->data[$id] = new \StdClass;
+            $this->data[$id]->v = array();
+        }
+        array_push($this->data[$id]->v,$value);
     }
     
     function SetAttribute($id,$attr,$value)
@@ -76,7 +107,7 @@ class View
         foreach ($e->children as $c)
         {
             $c->sibling = $sibling;
-            $c->parent = $e;
+            //$c->parent = $e;
             $this->Elements[$c->id] = $c;
             $this->loopElement($c);
             $sibling++;
@@ -86,16 +117,36 @@ class View
     function getRenderData()
     {
         $obj = new \StdClass;
-        $obj->v = $this->vid;
+        if ($this->istemplate)
+            $obj->t = $this->vid;
+        else
+            $obj->v = $this->vid;
         $obj->data = array();
         foreach ($this->data as $t => $data)
         {
-            if (isset($data->v) && gettype($data->v) == "object")
+            $datatosend = new \StdClass;
+            $datatosend->t = $t;
+            if (isset($data->v) && is_array($data->v))
             {
-                array_push($obj->data,array("t" => $t, "v" => $data->v->getRenderData()));
+                $arrayobj = new \StdClass;
+                $arrayobj->data = array();
+                foreach ($data->v as $d)
+                {
+                    array_push($arrayobj->data,array("t" => $t, "v" => $d->getRenderData(), "a"=>true));
+                }
+                $datatosend->v = $arrayobj;
             }
             else
-                array_push($obj->data,array("t" => $t, "d" => $data));
+            if (isset($data->v) && gettype($data->v) == "object")
+            {
+                $datatosend->v = $data->v->getRenderData();
+            }
+            else
+                $datatosend->d = $data;
+            
+            if(isset($data->append) && $data->append)
+                $datatosend->append = true;
+            array_push($obj->data,$datatosend);
         }
         
         return $obj;
@@ -105,21 +156,8 @@ class View
     {
         if (self::$update)
         {
-            $obj = new \StdClass;
+            $obj = $this->getRenderData();
             $obj->views = self::$views;
-            $obj->data = array();
-            foreach ($this->data as $t => $data)
-            {
-                if (isset($data->v) && gettype($data->v) == "object")
-                {
-                    array_push($obj->data,array("t" => $t, "v" => $data->v->getRenderData()));
-                }
-                else
-                    array_push($obj->data,array("t" => $t, "d" => $data));
-            }
-                
-            
-            #$obj->data = $this->data;
             header('Content-Type: application/json');
             header("Cache-Control: max-age=0, no-cache, no-store");
             echo json_encode($obj);
@@ -139,11 +177,11 @@ class View
     
     private function renderElement($cur,$f)
     {
-        
         $curpos = $cur->start;
         $lastchildend = $cur->end;
         
         fseek($f,$cur->tagstart);
+        if (! (isset($cur->istemplate) && $this->istemplate))
         if ($cur->start - $cur->tagstart > 0)
         {
             $rawtag =  fread($f,$cur->start - $cur->tagstart);
@@ -162,7 +200,7 @@ class View
             echo $rawtag;
         }
         
-        if ( isset($this->data[$cur->id]) && isset($this->data[$cur->id]->v))
+        if ( isset($this->data[$cur->id]) && isset($this->data[$cur->id]->v) && !(isset($cur->ignore) && !$this->istemplate))
         {
             if (isset($this->data[$cur->id]->v))
             {
@@ -171,6 +209,19 @@ class View
                 {
                     if (get_class($d) == "Alloy\View")
                         $d->Render();
+                }
+                elseif (is_array($d))
+                {
+                    foreach($d as $data)
+                    {
+                        if (gettype($data) == "object")
+                        {
+                            if (get_class($data) == "Alloy\View")
+                                $data->Render();
+                        }
+                        else
+                            echo $data;
+                    }
                 }
                 else
                     echo $d;
@@ -197,11 +248,18 @@ class View
                 $this->renderElement($c,$f);
                 $curpos = $c->tagend;
             }
+            
         }
         fseek($f,$curpos);
         
-        if ($cur->tagend - $curpos > 0)
+        
+        if ($cur->tagend - $curpos > 0 && !$this->istemplate)
             echo fread($f,$cur->tagend - $curpos);
+        elseif($cur->tagend - $curpos > 0 && isset($cur->ignore))
+            echo fread($f,$cur->tagend - $curpos);
+        elseif ($cur->end - $curpos > 0 && $this->istemplate)
+            echo fread($f,$cur->end - $curpos);
+            
     }
 }
 ?>
