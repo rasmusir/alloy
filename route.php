@@ -6,11 +6,15 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 $cfn = ".route";
-$file = fopen($cfn,"r");
-$size = filesize($cfn);
-$string = fread($file,$size);
-$routecache = json_decode($string);
-fclose($file);
+$routecache = array("timestamp" => 0);
+if (file_exists($cfn))
+{
+    $file = fopen($cfn,"r");
+    $size = filesize($cfn);
+    $string = fread($file,$size);
+    $routecache = json_decode($string);
+    fclose($file);
+}
 
 $code = "";
 
@@ -27,6 +31,16 @@ foreach ($path as $d)
 }
 
 $fn = "routes.json";
+if (!file_exists($fn))
+{
+    $file = fopen($fn,"w");
+    $temp = array("default" => array("target"=>"alloy/about.php","alias"=>"/"),"routes" => array(array("alias"=>"about","target" => "alloy/about.php")));
+    
+    fwrite($file,json_encode($temp,JSON_PRETTY_PRINT));
+    
+    fclose($file);
+}
+
 if ($routecache->timestamp != filemtime($fn))
 {
     $file = fopen($fn,"r");
