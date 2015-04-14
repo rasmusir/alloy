@@ -1,6 +1,6 @@
 <?php
 namespace Alloy;
-require("Compiler.php");
+require("compiler.php");
 
 class View
 {

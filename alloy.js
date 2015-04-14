@@ -135,20 +135,6 @@ var Alloy = (function() {
                 });
             }
         }.bind(this));
-        /*
-        for (var obj in data.attr)
-        {
-            var e = document.querySelector("#"+obj);
-            var a = data.attr[obj];
-            var attributeupdate = document.createEvent("HTMLEvents");
-            attributeupdate.initEvent("attributeupdate",true,true);
-            
-            attributeupdate.attributes = a;
-            
-            if (e.dispatchEvent(attributeupdate))
-            
-        }
-        */
     }
     
     function createView(view)
