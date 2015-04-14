@@ -116,7 +116,7 @@ var Alloy = (function() {
             }
             else if(obj.v && e && obj.v.t)
             {
-                var t = document.querySelector("script[name="+obj.v.t+"]");
+                var t = p.querySelector("script[name="+obj.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                 var template = createTemplate(t);
                 e.innerHTML = "";
                 update(obj.v.data,views,template)
@@ -128,7 +128,7 @@ var Alloy = (function() {
                 e.innerHTML = "";
                 obj.v.data.forEach(function(data){
                     
-                    var t = document.querySelector("script[name="+data.v.t+"]");
+                    var t = p.querySelector("script[name="+data.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                     var template = createTemplate(t);
                     update(data.v.data,views,template)
                     e.appendChild(template);
