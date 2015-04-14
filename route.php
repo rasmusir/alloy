@@ -6,7 +6,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 $cfn = ".route";
-$routecache = array("timestamp" => 0);
+$routecache = new stdClass;
+$routecache->timestamp = 0;
 if (file_exists($cfn))
 {
     $file = fopen($cfn,"r");
