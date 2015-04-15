@@ -86,41 +86,59 @@ var Alloy = (function() {
         p = p || document;
         data.forEach(function (obj)
         {
+            var dispatchEvent = function(elem,data,callback)
+            {
+                var d = data;
+                var contentupdate = document.createEvent("HTMLEvents");
+                contentupdate.initEvent("contentupdate",false,true);
+                contentupdate.data = d;
+                contentupdate.update = function() {
+                    callback();
+                };
+                
+                if (elem.dispatchEvent(contentupdate))
+                {
+                    callback();
+                }
+            };
+            
             var e = p.querySelector("*[name="+obj.t+"]");
             if (obj.d && e)
             {
-                var d = obj.d;
-                var contentupdate = document.createEvent("HTMLEvents");
-                contentupdate.initEvent("contentupdate",true,true);
-                contentupdate.data = d;
-                
-                if (e.dispatchEvent(contentupdate))
-                {
-                    if (d.v)
+                dispatchEvent(e,obj.d,function() {
+                    if (obj.d.v)
                         e.innerHTML = d.v;
-                    if (d.a)
-                        for (var attr in d.a)
+                    if (obj.d.a)
+                        for (var attr in obj.d.a)
                         {
-                            e.setAttribute(attr, d.a[attr]);
+                            e.setAttribute(attr, obj.d.a[attr]);
                         }
-                    
-                }
+                });
             }
             else if (obj.v && e && obj.v.v !==undefined)
             {
                 var v = views[obj.v.v];
-                var view = createView(v);
-                e.innerHTML = "";
-                update(obj.v.data,views,view)
-                e.appendChild(view);
+                var eview = e.getAttribute("vid") == v;
+                var view = eview ? e : createView(v);
+                dispatchEvent(view,obj.v.data,function() {
+                    update(obj.v.data,views,view);
+                    if (!eview)
+                    {
+                        e.innerHTML = "";
+                        e.setAttribute("vid",v);
+                        e.appendChild(view);
+                    }
+                });
             }
             else if(obj.v && e && obj.v.t)
             {
                 var t = p.querySelector("script[name="+obj.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                 var template = createTemplate(t);
-                e.innerHTML = "";
-                update(obj.v.data,views,template)
-                e.appendChild(template);
+                dispatchEvent(e,obj.v.data,function() {
+                        e.innerHTML = "";
+                        update(obj.v.data,views,template);
+                        e.appendChild(template);
+                });
             }
             else if(obj.v && e && obj.v.data)
             {
@@ -130,8 +148,10 @@ var Alloy = (function() {
                     
                     var t = p.querySelector("script[name="+data.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                     var template = createTemplate(t);
-                    update(data.v.data,views,template)
-                    e.appendChild(template);
+                    dispatchEvent(e,obj.v.data,function() {
+                            update(data.v.data,views,template);
+                            e.appendChild(template);
+                    });
                 });
             }
         }.bind(this));
