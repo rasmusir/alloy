@@ -14,7 +14,7 @@ fclose($file);
 
 $code = "";
 
-$path = explode("/",$_SERVER["REQUEST_URI"]);
+$path = explode("/",explode("?",$_SERVER["REQUEST_URI"])[0]);
 $_VIEW = $path[1];
 
 $_DATA = array();
