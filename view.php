@@ -143,6 +143,11 @@ class View
             }
             else
                 $datatosend->d = $data;
+                
+            if (isset($data->a))
+            {
+                $datatosend->a = $data->a;
+            }
             
             if(isset($data->append) && $data->append)
                 $datatosend->append = true;
