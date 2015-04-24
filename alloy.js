@@ -86,76 +86,134 @@ var Alloy = (function() {
         p = p || document;
         data.forEach(function (obj)
         {
-            var dispatchEvent = function(elem,data,callback)
-            {
-                var d = data;
-                var contentupdate = document.createEvent("HTMLEvents");
-                contentupdate.initEvent("contentupdate",false,true);
-                contentupdate.data = d;
-                contentupdate.update = function() {
-                    callback();
-                };
-                
-                if (elem.dispatchEvent(contentupdate))
-                {
-                    callback();
-                }
-            };
+            var elementremoved = document.createEvent("HTMLEvents");
+            elementremoved.initEvent("remove",true,false);
             
             var e = p.querySelector("*[name="+obj.t+"]");
+                e.dispatchEvent(elementremoved);
+            if (obj.a && e)
+            {
+                if (obj.a)
+                    for (var attr in obj.a)
+                    {
+                        e.setAttribute(attr, obj.a[attr]);
+                    }
+            }
+                
             if (obj.d && e)
             {
-                dispatchEvent(e,obj.d,function() {
-                    if (obj.d.v)
+                var d = obj.d;
+                var contentupdate = document.createEvent("HTMLEvents");
+                contentupdate.initEvent("contentupdate",true,true);
+                contentupdate.data = d;
+                
+                if (e.dispatchEvent(contentupdate))
+                {
+                    if (d.v)
+                    {
+                        e.dispatchEvent(elementremoved);
                         e.innerHTML = d.v;
-                    if (obj.d.a)
-                        for (var attr in obj.d.a)
-                        {
-                            e.setAttribute(attr, obj.d.a[attr]);
-                        }
-                });
+                    }
+                    
+                    
+                }
             }
             else if (obj.v && e && obj.v.v !==undefined)
             {
                 var v = views[obj.v.v];
-                var eview = e.getAttribute("vid") == v;
-                var view = eview ? e : createView(v);
-                dispatchEvent(view,obj.v.data,function() {
-                    update(obj.v.data,views,view);
-                    if (!eview)
-                    {
-                        e.innerHTML = "";
-                        e.setAttribute("vid",v);
-                        e.appendChild(view);
-                    }
-                });
+                var view = createView(v);
+                e.dispatchEvent(elementremoved);
+                e.innerHTML = "";
+                update(obj.v.data,views,view)
+                e.appendChild(view);
             }
             else if(obj.v && e && obj.v.t)
             {
                 var t = p.querySelector("script[name="+obj.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                 var template = createTemplate(t);
-                dispatchEvent(e,obj.v.data,function() {
-                        e.innerHTML = "";
-                        update(obj.v.data,views,template);
-                        e.appendChild(template);
-                });
+                e.dispatchEvent(elementremoved);
+                e.innerHTML = "";
+                update(obj.v.data,views,template)
+                e.appendChild(template);
             }
             else if(obj.v && e && obj.v.data)
             {
                 if (!obj.append)
-                e.innerHTML = "";
+                {
+                    e.dispatchEvent(elementremoved);
+                    e.innerHTML = "";
+                }
                 obj.v.data.forEach(function(data){
                     
                     var t = p.querySelector("script[name="+data.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                     var template = createTemplate(t);
-                    dispatchEvent(e,obj.v.data,function() {
-                            update(data.v.data,views,template);
-                            e.appendChild(template);
-                    });
+                    update(data.v.data,views,template)
+                    e.appendChild(template);
                 });
             }
-        }.bind(this));
+            runScripts(e);
+        });
     }
+    
+    
+    
+    function runScripts(element)
+    {
+        var result = element.querySelectorAll('script[type="javascript/module"]');
+        console.log(result);
+        for (var i = 0; i<result.length; i++)
+        {
+            var script = result[i];
+            if (script.innerHTML != "")
+            {
+                
+                var raw = script.innerHTML;
+                var module = new clientmodule();
+                
+                var encapsuled = "(function(_MID_) {var window = {}; var setInterval = window.setInterval = function(c,t) {return _MID_.setInterval(c,t);};"
+                                +                   "var setTimeout = window.setTimeout = function(c,t) {return _MID_.setTimeout(c,t);}; " + raw + "})";
+                
+                var compiled = eval(encapsuled);
+                var _MID_ = new clientmodule();
+                element._MID_ = _MID_;
+                var obj = new compiled(_MID_);
+            }
+        }
+    }
+    
+    function clientmodule()
+    {
+        this.intervals = [];
+        this.timers = [];
+    }
+    
+    clientmodule.prototype.setInterval = function(c,t)
+    {
+        var id = setInterval(c,t);
+        this.intervals.push(id);
+        return id;
+    };
+    
+    clientmodule.prototype.setTimeout = function(c,t)
+    {
+        var id = setTimeout(c,t);
+        this.timers.push(id);
+        
+        return id;
+    };
+    
+    clientmodule.prototype.listener = function() {
+        console.log("_MID_ element removed");
+    };
+    
+    clientmodule.prototype.clearAll = function() {
+        this.intervals.forEach(function(id) {
+            clearInterval(id);
+        });
+        this.timers.forEach(function(id) {
+            clearTimeout(id);
+        });
+    };
     
     function createView(view)
     {
