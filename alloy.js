@@ -10,8 +10,11 @@ var Alloy = (function() {
     window.addEventListener("click", function(e) {
         if (e.target.tagName == "A")
         {
-            request(e.target.href,null);
-            e.preventDefault();
+            if (testSameOrigin(e.target.href))
+            {
+                request(e.target.href,null);
+                e.preventDefault();
+            }
         }
         
     }.bind(this));
@@ -107,7 +110,7 @@ var Alloy = (function() {
             {
                 dispatchEvent(e,obj.d,function() {
                     if (obj.d.v)
-                        e.innerHTML = d.v;
+                        e.innerHTML = obj.d.v;
                     if (obj.d.a)
                         for (var attr in obj.d.a)
                         {
@@ -186,6 +189,17 @@ var Alloy = (function() {
             s += p + "="+obj[p];
         }
         return s;
+    }
+    function testSameOrigin(url) {
+
+        var loc = window.location,
+            a = document.createElement('a');
+
+        a.href = url;
+
+        return a.hostname == loc.hostname &&
+               a.port == loc.port &&
+               a.protocol == loc.protocol;
     }
     
     module.request = request;
