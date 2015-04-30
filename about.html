@@ -1,3 +1,35 @@
-This webpage uses the framework known as Alloy. Visit our <a href="http://alloy.io">website</a> or our <a href="http://github.com/rasmusir/alloy">GitHub repository</a> for more information.
-<br>
-If this page appears while trying to load any other page than /about, routing has not been configured properly. Visit "routes.json" and fill in desired url aliases and routing paths.
+<html>
+    <head>
+        <title name="title" active>TEst</title>
+        <script src="/alloy/alloy.js"> </script>
+        <script src="/alloy/require.js"> </script>
+    </head>
+    <body>
+        This webpage uses the framework known as Alloy. Visit our <a href="http://alloy.io">website</a> or our <a href="http://github.com/rasmusir/alloy">GitHub repository</a> for more information.
+        <br>
+        If this page appears while trying to load any other page than /about, routing has not been configured properly. Visit "routes.json" and fill in desired url aliases and routing paths.
+        <br>
+        <a href="/about/script" class="button"> Script </a>
+        <a href="/about/noscript" class="button"> No script </a>
+        <div name="test" active>
+            
+        </div>
+        
+        <style>
+            .button
+            {
+                padding: 3px 8px; 
+                margin: 4px 8px;
+                background: tomato; 
+                text-decoration: none;
+                color: white;
+            }
+            .button:hover
+            {
+                background: crimson;
+            }
+            
+            
+        </style>
+    </body>
+</html>

@@ -9,11 +9,15 @@ class View
     
     private static $update = null;
     private static $views = array();
+    private static $modules = array();
+    private static $events = array();
     private static $first = true;
+    private static $metadata;
     public $file;
     
     static function Get($file)
     {
+        
         $id = -1;
         if (self::$update == null)
         {
@@ -51,6 +55,17 @@ class View
         fclose($f);
         
         return $data;
+    }
+    
+    static function UseJSModule($module)
+    {
+        if (!in_array($module,self::$modules))
+            array_push(self::$modules,$module);
+    }
+    
+    static function Fire($event,$args)
+    {
+        array_push(self::$events,array("event" => $event,"args"=>$args));
     }
     
     function __construct($overhead,$vid)
@@ -143,6 +158,11 @@ class View
             }
             else
                 $datatosend->d = $data;
+                
+            if (isset($data->a))
+            {
+                $datatosend->a = $data->a;
+            }
             
             if(isset($data->append) && $data->append)
                 $datatosend->append = true;
@@ -158,12 +178,16 @@ class View
         {
             $obj = $this->getRenderData();
             $obj->views = self::$views;
+            $obj->modules = self::$modules;
+            $obj->events = self::$events;
             header('Content-Type: application/json');
             header("Cache-Control: max-age=0, no-cache, no-store");
             echo json_encode($obj);
         }
         else
         {
+            self::$metadata = array("modules" => self::$modules,"events" => self::$events);
+            
             $elements = $this->overhead->children;
             $cur = $this->overhead;
             
@@ -177,6 +201,7 @@ class View
     
     private function renderElement($cur,$f)
     {
+        
         $curpos = $cur->start;
         $lastchildend = $cur->end;
         
@@ -232,7 +257,7 @@ class View
                 foreach ($cur->children as $c)
                 {
                     fseek($f,$curpos);
-                    echo fread($f,$c->tagstart - $curpos);
+                    echo "HERE".fread($f,$c->tagstart - $curpos);
                     $this->renderElement($c,$f);
                     $curpos = $c->tagend;
                 }
@@ -244,18 +269,24 @@ class View
             {
                 fseek($f,$curpos);
                 if ($c->tagstart - $curpos > 0)
-                    echo fread($f,$c->tagstart - $curpos);
+                {
+                    $out = fread($f,$c->tagstart - $curpos);
+                    if (isset($this->overhead->headend) && $c->tagstart > $this->overhead->headend && $curpos <= $this->overhead->headend)
+                    {
+                        $metadata = json_encode(self::$metadata);
+                        $out = substr_replace($out, "<script type=\"alloy/metadata\" id=\"ALLOYMETADATA\">$metadata</script>", $this->overhead->headend - $curpos, 0);
+                    }
+                    
+                    echo $out;
+                }
                 $this->renderElement($c,$f);
                 $curpos = $c->tagend;
             }
-            
         }
         fseek($f,$curpos);
         
         
-        if ($cur->tagend - $curpos > 0 && !$this->istemplate)
-            echo fread($f,$cur->tagend - $curpos);
-        elseif($cur->tagend - $curpos > 0 && isset($cur->ignore))
+        if ($cur->tagend - $curpos > 0 && (!$this->istemplate || isset($cur->ignore)))
             echo fread($f,$cur->tagend - $curpos);
         elseif ($cur->end - $curpos > 0 && $this->istemplate)
             echo fread($f,$cur->end - $curpos);

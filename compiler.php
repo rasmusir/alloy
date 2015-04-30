@@ -47,6 +47,8 @@ class Compiler
         $root->template = $filename;
         $root->id = "root";
         
+        $root->headend = stripos($string,"</head>");
+        
         $parent = $root;
         
         while ($notdone)
@@ -149,7 +151,7 @@ class Compiler
                         $parent = $pp;
                     }
                     
-                    if ($type && $type == "template/html")
+                    if ($type && $type == "text/template")
                         $obj->istemplate = true;
                     if (isset($parent->istemplate))
                         $obj->ignore = true;
