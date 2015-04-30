@@ -47,6 +47,8 @@ class Compiler
         $root->template = $filename;
         $root->id = "root";
         
+        $root->headend = stripos($string,"</head>");
+        
         $parent = $root;
         
         while ($notdone)

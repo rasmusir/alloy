@@ -11,15 +11,11 @@
     switch ($subview)
     {
         case "script":
-            $view = View::Get("../views/script.html");
-            $master->SetData("test",$view);
-            $master->SetAttribute("test","test","aloha");
+            View::UseJSModule("/script/test.js");
+            View::Fire("boom",array("Message from server on event"));
             break;
         default:
         case "noscript":
-            $view = View::Get("../views/noscript.html");
-            $master->SetData("test",$view);
-            $master->SetAttribute("test","test","");
             break;
     }
     

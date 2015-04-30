@@ -2,6 +2,7 @@ var Alloy = (function() {
     
     var module = {};
     var alloyViews = {};
+    var alloyevents = {};
     
     window.addEventListener("popstate",function(e) {
         _request(e.state.location,e.state.args);
@@ -15,6 +16,37 @@ var Alloy = (function() {
         }
         
     }.bind(this));
+    
+    window.addEventListener("load", function(e) {
+        if (requirejs)
+        {
+            parsemeta();
+        }
+        else
+        {
+            var tries = 50;
+            var i = setInterval(function() {
+                tries--;
+                if (requirejs || tries <= 0)
+                {
+                    clearInterval(i);
+                    parsemeta();
+                }
+            }, 100);
+        }
+    });
+    
+    function parsemeta()
+    {
+        var meta = JSON.parse(document.querySelector("#ALLOYMETADATA").innerHTML);
+        
+        if (requirejs)
+        loadModules(meta.modules, function() {
+            fireEvents(meta.events);
+        });
+        else
+            fireEvents(meta.events);
+    }
     
     function request(location,args,callback)
     {
@@ -64,7 +96,12 @@ var Alloy = (function() {
         var checkDownload = function()
         {
             if (count <= 0)
+            {
                 update(obj.data,views);
+                loadModules(obj.modules, function() {
+                    fireEvents(obj.events);
+                });
+            }
         };
         
         views.forEach(function(v)
@@ -155,7 +192,42 @@ var Alloy = (function() {
         });
     }
     
+    function loadModules(modules, callback)
+    {
+        require(modules, function() {
+            for (var i = 0; i<arguments.length; i++)
+            {
+                var module = arguments[i];
+                if (module && module.run)
+                    module.run();
+            }
+            callback();
+        });
+        
+    }
     
+    function fireEvents(events)
+    {
+        events.forEach(function(event) {
+            if (alloyevents[event.event])
+            {
+                alloyevents[event.event].forEach(function(listener) {
+                    listener.callback.apply(listener,event.args);
+                });
+            }
+        });
+        
+    }
+    
+    function addListener(event,callback)
+    {
+        var listener = {callback:callback};
+        if (!alloyevents[event])
+            alloyevents[event] = [];
+        listener._id = alloyevents[event].count;
+        alloyevents[event].push(listener)
+        return listener;
+    }
     
     function runScripts(element)
     {
@@ -248,6 +320,7 @@ var Alloy = (function() {
     
     module.request = request;
     module.update = update;
+    module.on = addListener;
     
     return module;
 })();
