@@ -151,7 +151,7 @@ class Compiler
                         $parent = $pp;
                     }
                     
-                    if ($type && $type == "template/html")
+                    if ($type && $type == "text/template")
                         $obj->istemplate = true;
                     if (isset($parent->istemplate))
                         $obj->ignore = true;

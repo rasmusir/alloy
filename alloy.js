@@ -18,7 +18,7 @@ var Alloy = (function() {
     }.bind(this));
     
     window.addEventListener("load", function(e) {
-        if (requirejs)
+        if (typeof(requirejs) !=="undefined")
         {
             parsemeta();
         }
@@ -27,7 +27,7 @@ var Alloy = (function() {
             var tries = 50;
             var i = setInterval(function() {
                 tries--;
-                if (requirejs || tries <= 0)
+                if (typeof(requirejs) !=="undefined" || tries <= 0)
                 {
                     clearInterval(i);
                     parsemeta();
@@ -40,7 +40,7 @@ var Alloy = (function() {
     {
         var meta = JSON.parse(document.querySelector("#ALLOYMETADATA").innerHTML);
         
-        if (requirejs)
+        if (typeof(requirejs)!=="undefined")
         loadModules(meta.modules, function() {
             fireEvents(meta.events);
         });

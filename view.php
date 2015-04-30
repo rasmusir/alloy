@@ -271,7 +271,7 @@ class View
                 if ($c->tagstart - $curpos > 0)
                 {
                     $out = fread($f,$c->tagstart - $curpos);
-                    if ($c->tagstart > $this->overhead->headend && $curpos <= $this->overhead->headend)
+                    if (isset($this->overhead->headend) && $c->tagstart > $this->overhead->headend && $curpos <= $this->overhead->headend)
                     {
                         $metadata = json_encode(self::$metadata);
                         $out = substr_replace($out, "<script type=\"alloy/metadata\" id=\"ALLOYMETADATA\">$metadata</script>", $this->overhead->headend - $curpos, 0);
