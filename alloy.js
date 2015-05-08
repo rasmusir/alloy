@@ -9,15 +9,49 @@ var Alloy = (function() {
     });
     
     window.addEventListener("click", function(e) {
-        if (e.target.tagName == "A")
+        var target = e.target;
+        while (target)
         {
-            request(e.target.href,null);
-            e.preventDefault();
+            if (target.tagName == "A")
+            {
+                request(target.href,null);
+                e.preventDefault();
+                return;
+            }
+            else if (target.tagName == "INPUT" && target.type=="submit")
+            {
+                var elements = {};
+                for (var i = 0; i<target.form.length; i++)
+                {
+                    var t = target.form[i];
+                    if (!(t.type == "submit" && t != target) && t.name != "")
+                        elements[t.name] = t.value;
+                }
+                var include = target.form.getAttribute("include");
+                if (include)
+                {
+                    include = include.split(" ");
+                    include.forEach(function(n) {
+                        var t = target.form.querySelector("*[name="+n+"]");
+                        elements[t.getAttribute("name")] = t.innerHTML;
+                    });
+                }
+                
+                request(target.form.target,{post:elements});
+                e.preventDefault();
+                return;
+            }
+            else
+                target = target.parentElement;
         }
         
     }.bind(this));
     
     window.addEventListener("load", function(e) {
+        
+        var title = document.querySelector("title") ? document.querySelector("title").innerHTML : "unknown";
+        window.history.pushState({location:window.location.href,args:null},title,window.location.href);
+        
         if (typeof(requirejs) !=="undefined")
         {
             parsemeta();
@@ -51,7 +85,8 @@ var Alloy = (function() {
     function request(location,args,callback)
     {
         _request(location,args,callback);
-        window.history.pushState({location:location,args:args},document.querySelector("title").innerHTML,location);
+        var title = document.querySelector("title") ? document.querySelector("title").innerHTML : "unknown";
+        window.history.pushState({location:location,args:args},title,location);
     }
     
     function _request(location,args,callback)
@@ -59,12 +94,16 @@ var Alloy = (function() {
         callback = callback || (function() {return true;});
         
         var x = new XMLHttpRequest();
-        x.open("GET",location);
+        var method = args ? "POST" : "GET";
+        x.open(method,location);
         x.setRequestHeader("Content-Type","application/json");
         x.setRequestHeader("Cache-Control", "no-cache");
         x.onload = function() {
             try
             {
+                var location = x.getResponseHeader("location");
+                if (location)
+                    return request(location,null,callback);
                 var obj = JSON.parse(x.responseText);
                 if (callback(obj))
                     prepareUpdate(obj);
@@ -75,7 +114,7 @@ var Alloy = (function() {
                 console.error(e);
             }
         };
-        x.send();
+        x.send(args ? JSON.stringify(args) : null);
     };
     
     function downloadView(view,callback)
@@ -90,17 +129,21 @@ var Alloy = (function() {
     
     function prepareUpdate(obj)
     {
-        var views = obj.views;
+        var views = obj.views || [];
         var count = views.length;
         
         var checkDownload = function()
         {
             if (count <= 0)
             {
+                if (obj.data)
                 update(obj.data,views);
+                if (obj.modules)
                 loadModules(obj.modules, function() {
                     fireEvents(obj.events);
                 });
+                else
+                    fireEvents(obj.events);
             }
         };
         
@@ -118,9 +161,10 @@ var Alloy = (function() {
         checkDownload();
     }
     
-    function update(data,views,p)
+    function update(data,views,p,mainview)
     {
         p = p || document;
+        mainview = mainview || p;
         data.forEach(function (obj)
         {
             var elementremoved = document.createEvent("HTMLEvents");
@@ -166,11 +210,11 @@ var Alloy = (function() {
             }
             else if(obj.v && e && obj.v.t)
             {
-                var t = p.querySelector("script[name="+obj.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
+                var t = mainview.querySelector("script[name="+obj.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                 var template = createTemplate(t);
                 e.dispatchEvent(elementremoved);
                 e.innerHTML = "";
-                update(obj.v.data,views,template)
+                update(obj.v.data,views,template,mainview)
                 e.appendChild(template);
             }
             else if(obj.v && e && obj.v.data)
@@ -182,13 +226,12 @@ var Alloy = (function() {
                 }
                 obj.v.data.forEach(function(data){
                     
-                    var t = p.querySelector("script[name="+data.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
+                    var t = mainview.querySelector("script[name="+data.v.t+"]") || document.querySelector("script[name="+obj.v.t+"]");
                     var template = createTemplate(t);
-                    update(data.v.data,views,template)
+                    update(data.v.data,views,template,mainview)
                     e.appendChild(template);
                 });
             }
-            runScripts(e);
         });
     }
     
@@ -229,64 +272,6 @@ var Alloy = (function() {
         return listener;
     }
     
-    function runScripts(element)
-    {
-        var result = element.querySelectorAll('script[type="javascript/module"]');
-        console.log(result);
-        for (var i = 0; i<result.length; i++)
-        {
-            var script = result[i];
-            if (script.innerHTML != "")
-            {
-                
-                var raw = script.innerHTML;
-                var module = new clientmodule();
-                
-                var encapsuled = "(function(_MID_) {var window = {}; var setInterval = window.setInterval = function(c,t) {return _MID_.setInterval(c,t);};"
-                                +                   "var setTimeout = window.setTimeout = function(c,t) {return _MID_.setTimeout(c,t);}; " + raw + "})";
-                
-                var compiled = eval(encapsuled);
-                var _MID_ = new clientmodule();
-                element._MID_ = _MID_;
-                var obj = new compiled(_MID_);
-            }
-        }
-    }
-    
-    function clientmodule()
-    {
-        this.intervals = [];
-        this.timers = [];
-    }
-    
-    clientmodule.prototype.setInterval = function(c,t)
-    {
-        var id = setInterval(c,t);
-        this.intervals.push(id);
-        return id;
-    };
-    
-    clientmodule.prototype.setTimeout = function(c,t)
-    {
-        var id = setTimeout(c,t);
-        this.timers.push(id);
-        
-        return id;
-    };
-    
-    clientmodule.prototype.listener = function() {
-        console.log("_MID_ element removed");
-    };
-    
-    clientmodule.prototype.clearAll = function() {
-        this.intervals.forEach(function(id) {
-            clearInterval(id);
-        });
-        this.timers.forEach(function(id) {
-            clearTimeout(id);
-        });
-    };
-    
     function createView(view)
     {
         var frag = document.createDocumentFragment();
@@ -318,9 +303,22 @@ var Alloy = (function() {
         return s;
     }
     
+    function fireServerEvent(path,event,args,callback)
+    {
+        var x = new XMLHttpRequest();
+        x.open("POST",path);
+        x.setRequestHeader("Content-Type","application/json");
+        x.onload = function() {
+            var obj = JSON.parse(x.responseText);
+            callback(obj);
+        };
+        x.send(JSON.stringify({event:event,args:args}));
+    }
+    
     module.request = request;
     module.update = update;
     module.on = addListener;
+    module.fireServerEvent = fireServerEvent;
     
     return module;
 })();

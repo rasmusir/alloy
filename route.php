@@ -1,5 +1,5 @@
 <?php
-
+require_once("view.php");
 chdir("..");
 
 error_reporting(E_ALL);
@@ -21,6 +21,8 @@ $code = "";
 
 $path = explode("/",explode("?",$_SERVER["REQUEST_URI"])[0]);
 $_VIEW = $path[1];
+
+Alloy\View::$postdata = json_decode(file_get_contents("php://input"), true);
 
 $_DATA = array();
 $i = 0;

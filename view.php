@@ -1,6 +1,6 @@
 <?php
 namespace Alloy;
-require("compiler.php");
+require_once("compiler.php");
 
 class View
 {
@@ -13,6 +13,7 @@ class View
     private static $events = array();
     private static $first = true;
     private static $metadata;
+    public static $postdata;
     public $file;
     
     static function Get($file)
@@ -66,6 +67,22 @@ class View
     static function Fire($event,$args)
     {
         array_push(self::$events,array("event" => $event,"args"=>$args));
+    }
+    
+    static function SendEvents()
+    {
+        $obj = new \StdClass;
+        $obj->events = self::$events;
+        header('Content-Type: application/json');
+        header("Cache-Control: max-age=0, no-cache, no-store");
+        die(json_encode($obj));
+    }
+    
+    static function Redirect($loc)
+    {
+        header("location: $loc");
+        if (self::$update)
+            http_response_code(200);
     }
     
     function __construct($overhead,$vid)
@@ -291,6 +308,22 @@ class View
         elseif ($cur->end - $curpos > 0 && $this->istemplate)
             echo fread($f,$cur->end - $curpos);
             
+    }
+    
+    public static function On($event, $callback)
+    {
+        if (isset(self::$postdata["event"]))
+        {
+            die( json_encode($callback(self::$postdata["args"])));
+        }
+    }
+    
+    public static function OnPost($callback)
+    {
+        if (isset(self::$postdata["post"]))
+        {
+            $callback(self::$postdata["post"]);
+        }
     }
 }
 ?>

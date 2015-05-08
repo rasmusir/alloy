@@ -1,6 +1,6 @@
 <?php
 namespace Alloy;
-require("tag.php");
+require_once("tag.php");
 
 class Compiler
 {
