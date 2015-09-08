@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 chdir("alloy");
 require_once("view.php");
 
@@ -36,5 +37,28 @@ function PrintData($name,$data)
 $master->SetData("profiler",$profiler);
 
 $master->render();
+=======
+    chdir("alloy");
+    require("view.php");
+    
+    use Alloy\View;
+    
+    $master = View::Get("about.html");
+    $subview = "";
+    if (isset($path[2]))
+        $subview = $path[2];
+    switch ($subview)
+    {
+        case "script":
+            View::UseJSModule("/script/test.js");
+            View::Fire("boom",array("Message from server on event"));
+            break;
+        default:
+        case "noscript":
+            break;
+    }
+    
+    $master->render();
+>>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
 
 ?>
