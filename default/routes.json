@@ -1,0 +1,12 @@
+{
+    "default":{
+        "alias"     : "404",
+        "target"    : "alloy/default/welcome.php"
+    },
+    "routes" : [
+        {
+            "alias" : ["home","/",""],
+            "target": "alloy/default/welcome.php"
+        }
+    ]
+}

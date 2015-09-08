@@ -309,8 +309,12 @@ var Alloy = (function() {
         x.open("POST",path);
         x.setRequestHeader("Content-Type","application/json");
         x.onload = function() {
+            var location = x.getResponseHeader("location");
+            if (location)
+                return request(location,null,callback);
             var obj = JSON.parse(x.responseText);
-            callback(obj);
+            if (callback)
+                callback(obj);
         };
         x.send(JSON.stringify({event:event,args:args}));
     }

@@ -1,13 +1,14 @@
 <?php
 namespace Alloy;
 require_once("compiler.php");
+require_once("profiler.php");
 
 class View
 {
     private $data = array();
     public $istemplate = false;
     
-    private static $update = null;
+    public static $update = null;
     private static $views = array();
     private static $modules = array();
     private static $events = array();
@@ -80,9 +81,9 @@ class View
     
     static function Redirect($loc)
     {
-        header("location: $loc");
+        header("Location: $loc");
         if (self::$update)
-            http_response_code(200);
+            http_response_code(201);
     }
     
     function __construct($overhead,$vid)
@@ -191,6 +192,11 @@ class View
     
     function Render()
     {
+        self::_render();
+    }
+    
+    private function _render()
+    {
         if (self::$update)
         {
             $obj = $this->getRenderData();
@@ -250,7 +256,7 @@ class View
                 if (gettype($d) == "object")
                 {
                     if (get_class($d) == "Alloy\View")
-                        $d->Render();
+                        $d->_render();
                 }
                 elseif (is_array($d))
                 {
@@ -259,7 +265,7 @@ class View
                         if (gettype($data) == "object")
                         {
                             if (get_class($data) == "Alloy\View")
-                                $data->Render();
+                                $data->_render();
                         }
                         else
                             echo $data;
@@ -314,7 +320,10 @@ class View
     {
         if (isset(self::$postdata["event"]))
         {
-            die( json_encode($callback(self::$postdata["args"])));
+            if (isset(self::$postdata["args"]))
+                die( json_encode($callback(self::$postdata["args"])));
+            else
+                die( json_encode($callback()));
         }
     }
     
