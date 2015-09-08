@@ -1,21 +1,14 @@
 <?php
 namespace Alloy;
 require_once("compiler.php");
-<<<<<<< HEAD
 require_once("profiler.php");
-=======
->>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
 
 class View
 {
     private $data = array();
     public $istemplate = false;
     
-<<<<<<< HEAD
-    public static $update = null;
-=======
     private static $update = null;
->>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
     private static $views = array();
     private static $modules = array();
     private static $events = array();
@@ -88,15 +81,9 @@ class View
     
     static function Redirect($loc)
     {
-<<<<<<< HEAD
-        header("Location: $loc");
-        if (self::$update)
-            http_response_code(201);
-=======
         header("location: $loc");
         if (self::$update)
             http_response_code(200);
->>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
     }
     
     function __construct($overhead,$vid)
@@ -205,14 +192,6 @@ class View
     
     function Render()
     {
-<<<<<<< HEAD
-        self::_render();
-    }
-    
-    private function _render()
-    {
-=======
->>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
         if (self::$update)
         {
             $obj = $this->getRenderData();
@@ -272,11 +251,7 @@ class View
                 if (gettype($d) == "object")
                 {
                     if (get_class($d) == "Alloy\View")
-<<<<<<< HEAD
-                        $d->_render();
-=======
                         $d->Render();
->>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
                 }
                 elseif (is_array($d))
                 {
@@ -285,11 +260,7 @@ class View
                         if (gettype($data) == "object")
                         {
                             if (get_class($data) == "Alloy\View")
-<<<<<<< HEAD
-                                $data->_render();
-=======
                                 $data->Render();
->>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
                         }
                         else
                             echo $data;
@@ -344,14 +315,7 @@ class View
     {
         if (isset(self::$postdata["event"]))
         {
-<<<<<<< HEAD
-            if (isset(self::$postdata["args"]))
-                die( json_encode($callback(self::$postdata["args"])));
-            else
-                die( json_encode($callback()));
-=======
             die( json_encode($callback(self::$postdata["args"])));
->>>>>>> c270cf36b2964427683b18c8d9bf269e298dcbb0
         }
     }
     
