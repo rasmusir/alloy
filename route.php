@@ -18,8 +18,9 @@ if (file_exists($cfn))
 }
 
 $code = "";
-
-$path = explode("/",explode("?",$_SERVER["REQUEST_URI"])[0]);
+$uri = $_SERVER["REQUEST_URI"];
+$uri = explode("?",$uri);
+$path = explode("/",$uri[0]);
 $_VIEW = $path[1];
 
 Alloy\View::$postdata = json_decode(file_get_contents("php://input"), true);
