@@ -6,7 +6,13 @@ class Compiler
 {
     static function Get($filename)
     {
-        $ohm = $filename.".json";
+        $name = basename($filename);
+        $ohm = substr($filename,0,-strlen($name)).".cache/".$name.".json";
+        $dirname = dirname($ohm);
+        if (!is_dir($dirname))
+        {
+            mkdir($dirname, 0755, true);
+        }
         if (file_exists($ohm))
         {
             $file = fopen($ohm,"r");
