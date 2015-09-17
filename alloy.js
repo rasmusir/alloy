@@ -241,6 +241,7 @@ var Alloy = (function() {
     
     function loadModules(modules, callback)
     {
+        if (typeof(require) !== "undefined")
         require(modules, function() {
             for (var i = 0; i<arguments.length; i++)
             {

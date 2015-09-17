@@ -30,7 +30,7 @@ $i = 0;
 foreach ($path as $d)
 {
     $i++;
-    if ($i < 3) continue; 
+    if ($i < 3) continue;
     $_DATA[$i-3] = $d;
 }
 
@@ -38,16 +38,6 @@ $fn = "routes.json";
 if (!file_exists($fn))
 {
     copy("alloy/default/routes.json",$fn);
-    /*
-    $fn = "alloy/default/routes.json";
-    
-    $file = fopen($fn,"w");
-    $temp = array("default" => array("target"=>"alloy/about.php","alias"=>"/"),"routes" => array(array("alias"=>"about","target" => "alloy/about.php")));
-    
-    fwrite($file,json_encode($temp,JSON_PRETTY_PRINT));
-    
-    fclose($file);
-    */
 }
 
 if ($routecache->timestamp != filemtime($fn))

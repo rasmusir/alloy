@@ -8,6 +8,7 @@ class Compiler
     {
         $name = basename($filename);
         $ohm = substr($filename,0,-strlen($name)).".cache/".$name.".json";
+        
         $dirname = dirname($ohm);
         if (!is_dir($dirname))
         {
@@ -21,9 +22,11 @@ class Compiler
             fclose($file);
             $overhead = json_decode($string);
             if ($overhead->timestamp == filemtime($filename))
+            {
                 return $overhead;
+            }
         }
-        
+
         $file = fopen($ohm,"w");
         $overhead = self::Compile($filename);
         $overhead->timestamp = filemtime($filename);

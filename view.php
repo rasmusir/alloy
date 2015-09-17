@@ -6,6 +6,7 @@ require_once("profiler.php");
 class View
 {
     private $data = array();
+    private $into = array();
     public $istemplate = false;
     
     private static $update = null;
