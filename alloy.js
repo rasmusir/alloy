@@ -86,11 +86,14 @@ var Alloy = (function() {
         }
     }
     
-    function request(location,args,callback)
+    function request(location,args,callback,blockhistory)
     {
         _request(location,args,callback);
-        var title = document.querySelector("title") ? document.querySelector("title").innerHTML : "unknown";
-        window.history.pushState({location:location,args:args},title,location);
+        if (!blockhistory)
+        {
+            var title = document.querySelector("title") ? document.querySelector("title").innerHTML : "unknown";
+            window.history.pushState({location:location,args:args},title,location);
+        }
     }
     
     function _request(location,args,callback)
@@ -111,6 +114,7 @@ var Alloy = (function() {
                 var obj = JSON.parse(x.responseText);
                 if (callback(obj))
                     prepareUpdate(obj);
+                
             }
             catch (ev)
             {
@@ -142,7 +146,7 @@ var Alloy = (function() {
             {
                 if (obj.data)
                 update(obj.data,views);
-                if (obj.modules)
+                if (obj.modules && obj.modules.length > 0)
                 loadModules(obj.modules, function() {
                     fireEvents(obj.events);
                 });
@@ -256,15 +260,14 @@ var Alloy = (function() {
     
     function fireEvents(events)
     {
-        events.forEach(function(event) {
-            if (alloyevents[event.event])
+        events.forEach(function(aevent) {
+            if (alloyevents[aevent.event])
             {
-                alloyevents[event.event].forEach(function(listener) {
-                    listener.callback.apply(listener,event.args);
+                alloyevents[aevent.event].forEach(function(listener) {
+                    listener.callback(aevent.args);
                 });
             }
         });
-        
     }
     
     function addListener(event,callback)
@@ -274,6 +277,9 @@ var Alloy = (function() {
             alloyevents[event] = [];
         listener._id = alloyevents[event].count;
         alloyevents[event].push(listener)
+        
+        
+        
         return listener;
     }
     
