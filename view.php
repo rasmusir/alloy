@@ -314,7 +314,7 @@ class View
     
     public static function On($event, $callback)
     {
-        if (isset(self::$postdata["event"]))
+        if (isset(self::$postdata["event"]) && $event == self::$postdata["event"])
         {
             die( json_encode($callback(self::$postdata["args"])));
         }
