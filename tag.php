@@ -35,7 +35,7 @@ class Tag
     
     function SetAttribute($attr,$value)
     {
-        $this->attr[$attr] = $value;
+        $this->attr[$attr] = strval($value);
     }
     
     function GetAttribute($attr)
